@@ -37,7 +37,7 @@ $ mysql -uroot
 mysql> CREATE USER '<username>'@'localhost' IDENTIFIED WITH mysql_native_password BY '<password>';
 ```
 
-Após criar o usuário preencha o <'username'> e o <'password'> no arquivo [database.js](https://github.com/XatubaPox/demo-csv/blob/main/database/database.js).
+Após criar o usuário preencha o <'username'> e o <'password'> no arquivo [database.js](https://github.com/NilloGabriel/demo-csv/blob/main/database/database.js).
 
 Conceda privilégios para esse usuário (pode conceder menos privilégios se quiser):
 
@@ -46,7 +46,7 @@ Conceda privilégios para esse usuário (pode conceder menos privilégios se qui
 mysql> GRANT ALL PRIVILEGES ON *.* TO '<username>'@'localhost' WITH GRANT OPTION;
 ```
 
-Saia do usuário root, logue com o usuário que acabou de criar, e crie um banco de dados com o script disponivel no arquivo [democsv.sql](https://github.com/XatubaPox/demo-csv/blob/main/database/democsv.sql):
+Saia do usuário root, logue com o usuário que acabou de criar, e crie um banco de dados com o script disponivel no arquivo [democsv.sql](https://github.com/NilloGabriel/demo-csv/blob/main/database/democsv.sql):
 
 ```shell
 mysql> quit
