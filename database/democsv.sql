@@ -49,23 +49,23 @@ CREATE TABLE IF NOT EXISTS empresa (
 
 DROP VIEW IF EXISTS saida;
 
-CREATE
-OR REPLACE VIEW saida AS
-SELECT
-  e.nome_fantasia,
-  e.slug,
-  e.dt_inicio_atividade AS inicio_atividades,
-  e.porte AS porte_empresa,
-  c.nome AS nome_cidade,
-  u.sigla AS sigla_uf,
-  c.populacao AS populacao_cidade,
-  c.latitude AS latitude_cidade,
-  c.longitude AS longitude_cidade,
-  e.dist_1,
-  e.dist_2,
-  e.dist_3,
-  e.dist_4
-FROM
-  empresa AS e
-  INNER JOIN cidade AS c ON (e.cidade_id = c.id)
-  INNER JOIN uf AS u ON (c.uf_id = u.id)
+CREATE OR REPLACE VIEW saida AS (
+  SELECT
+    e.nome_fantasia,
+    e.slug,
+    e.dt_inicio_atividade AS inicio_atividades,
+    e.porte AS porte_empresa,
+    c.nome AS nome_cidade,
+    u.sigla AS sigla_uf,
+    c.populacao AS populacao_cidade,
+    c.latitude AS latitude_cidade,
+    c.longitude AS longitude_cidade,
+    e.dist_1,
+    e.dist_2,
+    e.dist_3,
+    e.dist_4
+  FROM
+    empresa AS e
+    INNER JOIN cidade AS c ON (e.cidade_id = c.id)
+    INNER JOIN uf AS u ON (c.uf_id = u.id)
+);
