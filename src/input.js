@@ -37,28 +37,10 @@ const readCsvFile = (path, start, destArray, mapping) => {
   })
 }
 
-const readUf = new Promise(async (resolve, reject) => {
-  try {
-    const streamUf = createReadStream(paths[0], {
-      start: 16
-    })
-
-    const fileUfLines = createInterface({
-      input: streamUf
-    })
-
-    for await (let line of fileUfLines) {
-      const ufLineSplit = line.split(',')
-      ufs.push({
-        codigo_uf: ufLineSplit[0],
-        sigla: ufLineSplit[1]
-      })
-    }
-    resolve()
-  } catch (err) {
-    reject(err)
-  }
-})
+const readUf = readCsvFile(paths[0], 16, ufs, lineSplit => ({
+  codigo_uf: lineSplit[0],
+  sigla: lineSplit[1]
+}))
 
 const readCityPop = readCsvFile(paths[1], 43, cityPop, lineSplit => ({
   cod_ibge: lineSplit[0],
