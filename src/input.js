@@ -60,30 +60,12 @@ const readUf = new Promise(async (resolve, reject) => {
   }
 })
 
-const readCityPop = new Promise(async (resolve, reject) => {
-  try {
-    const streamCityPop = createReadStream(paths[1], {
-      start: 43
-    })
-
-    const fileCityPopLines = createInterface({
-      input: streamCityPop
-    })
-
-    for await (let line of fileCityPopLines) {
-      const cityPopLineSplit = line.split(',')
-      cityPop.push({
-        cod_ibge: cityPopLineSplit[0],
-        nome_cidade: cityPopLineSplit[1],
-        nome_uf: cityPopLineSplit[2],
-        populacao: cityPopLineSplit[3]
-      })
-    }
-    resolve()
-  } catch (err) {
-    reject(err)
-  }
-})
+const readCityPop = readCsvFile(paths[1], 43, cityPop, lineSplit => ({
+  cod_ibge: lineSplit[0],
+  nome_cidade: lineSplit[1],
+  nome_uf: lineSplit[2],
+  populacao: lineSplit[3]
+}))
 
 const readCitySiafi = new Promise(async (resolve, reject) => {
   try {
