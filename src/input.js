@@ -67,139 +67,124 @@ const readCompany = readCsvFile(paths[3], 71, company, lineSplit => ({
   porte: lineSplit[5]
 }))
 
+const arrayUf = []
+const arrayCity = []
+const arrayCompany = []
+
+let idUf = 1
+let idCity = 1
+
+const processUfData = async () => {
+  ufs.forEach(line => {
+    arrayUf.push({
+      id_uf: idUf,
+      sigla: line.sigla,
+      nome_uf: getNomeUf(line.codigo_uf),
+      codigo_uf: line.codigo_uf
+    })
+    idUf++
+  })
+
+  await connection.query(
+    `INSERT INTO uf (sigla, nome_uf) VALUES ?`,
+    [
+      arrayUf.map(data => [
+        data.sigla,
+        data.nome_uf
+      ])
+    ]
+  ).catch(err => {
+    throw err
+  })
+}
+
+const processCityData = async () => {
+  citySiafi.forEach(line => {
+    const auxPopulacao = cityPop.find(city => city.cod_ibge === line.codigo_ibge).populacao
+    const auxIdUf = arrayUf.find(uf => uf.codigo_uf === line.codigo_ibge.slice(0, 2)).id_uf
+
+    arrayCity.push({
+      id_city: idCity,
+      nome: line.nome,
+      populacao: auxPopulacao,
+      latitude: line.latitude,
+      longitude: line.longitude,
+      codigo_ibge: line.codigo_ibge,
+      siafi_id: line.siafi_id,
+      uf_id: auxIdUf
+    })
+    idCity++
+  })
+
+  await connection.query(
+    `INSERT INTO cidade (nome, populacao, latitude, longitude, cod_ibge, cod_siafi, uf_id) VALUES ?`,
+    [
+      arrayCity.map(data => [
+        data.nome,
+        data.populacao,
+        data.latitude,
+        data.longitude,
+        data.codigo_ibge,
+        data.siafi_id,
+        data.uf_id
+      ])
+    ]
+  ).catch(err => {
+    throw err;
+  });
+}
+
+const processCompanyData = async () => {
+  company.forEach(line => {
+    const auxIdCity = arrayCity.find(city => city.siafi_id === line.municipio).id_city
+
+    arrayCompany.push({
+      slug: slug(line.nome_fantasia),
+      nome_fantasia: line.nome_fantasia,
+      dt_inicio_atividades: formatDate(line.dt_inicio_atividades),
+      cnae_fiscal: line.cnae_fiscal,
+      cep: line.cep,
+      porte: line.porte,
+      cidade_id: auxIdCity
+    })
+  })
+
+  await connection.query(
+    `INSERT INTO empresa (slug, nome_fantasia, dt_inicio_atividade, cnae_fiscal, cep, porte, cidade_id) 
+          VALUES ?`,
+    [
+      arrayCompany.map(data => [
+        data.slug,
+        data.nome_fantasia,
+        data.dt_inicio_atividades,
+        data.cnae_fiscal,
+        data.cep,
+        data.porte,
+        data.cidade_id
+      ])
+    ]
+  ).catch(err => {
+    throw err
+  })
+}
+
 export const allPromises = Promise.all([
   readUf,
   readCityPop,
   readCitySiafi,
   readCompany
-])
-  .then(async () => {
-    await connection.connect()
-
-    const arrayUf = []
-    let id_uf = 1
-
-    for await (let line of ufs) {
-      arrayUf.push({
-        id_uf: id_uf,
-        sigla: line.sigla,
-        nome_uf: getNomeUf(line.codigo_uf),
-        codigo_uf: line.codigo_uf
-      })
-      id_uf++
+]).then(async () => {
+    try {
+      await connection.connect()
+      await processUfData()
+      await processCityData()
+      await processCompanyData()
+      await outputData()
+    } catch (err) {
+      throw err
+    } finally {
+      connection.end()
     }
-
-    await connection
-      .query(
-        `INSERT INTO uf (sigla, nome_uf) 
-          VALUES ?`,
-        [arrayUf.map(data => [data.sigla, data.nome_uf])]
-      )
-      .catch(err => {
-        throw err
-      })
-
-    const arrayCity = []
-    let id_city = 1
-
-    for await (let line of citySiafi) {
-      let auxPopulacao = {}
-      for (let { cod_ibge, populacao } of cityPop) {
-        auxPopulacao = populacao
-
-        if (cod_ibge == line.codigo_ibge) {
-          break
-        }
-      }
-
-      let auxIdUf = {}
-      for (let { id_uf, codigo_uf } of arrayUf) {
-        auxIdUf = id_uf
-
-        if (codigo_uf == line.codigo_ibge.slice(0, 2)) {
-          break
-        }
-      }
-
-      arrayCity.push({
-        id_city: id_city,
-        nome: line.nome,
-        populacao: auxPopulacao,
-        latitude: line.latitude,
-        longitude: line.longitude,
-        codigo_ibge: line.codigo_ibge,
-        siafi_id: line.siafi_id,
-        uf_id: auxIdUf
-      })
-      id_city++
-    }
-
-    await connection
-      .query(
-        `INSERT INTO cidade (nome, populacao, latitude, longitude, cod_ibge, cod_siafi, uf_id) 
-          VALUES ?`,
-        [
-          arrayCity.map(data => [
-            data.nome,
-            data.populacao,
-            data.latitude,
-            data.longitude,
-            data.codigo_ibge,
-            data.siafi_id,
-            data.uf_id
-          ])
-        ]
-      )
-      .catch(err => {
-        throw err
-      })
-
-    const arrayCompany = []
-
-    for await (let line of company) {
-      let auxIdCity = {}
-      for (let { siafi_id, id_city } of arrayCity) {
-        auxIdCity = id_city
-
-        if (siafi_id == line.municipio) {
-          break
-        }
-      }
-
-      arrayCompany.push({
-        slug: slug(line.nome_fantasia),
-        nome_fantasia: line.nome_fantasia,
-        dt_inicio_atividades: formatDate(line.dt_inicio_atividades),
-        cnae_fiscal: line.cnae_fiscal,
-        cep: line.cep,
-        porte: line.porte,
-        cidade_id: auxIdCity
-      })
-    }
-
-    await connection
-      .query(
-        `INSERT INTO empresa (slug, nome_fantasia, dt_inicio_atividade, cnae_fiscal, cep, porte, cidade_id) 
-          VALUES ?`,
-        [
-          arrayCompany.map(data => [
-            data.slug,
-            data.nome_fantasia,
-            data.dt_inicio_atividades,
-            data.cnae_fiscal,
-            data.cep,
-            data.porte,
-            data.cidade_id
-          ])
-        ]
-      )
-      .catch(err => {
-        throw err
-      })
-
-    outputData()
-    await connection.end()
-  })
-  .catch(err => {
+  }).catch(err => {
     throw err
   })
