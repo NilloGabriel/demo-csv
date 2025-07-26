@@ -1,6 +1,6 @@
 # Demo CSV
 
-Aplicação que analisa dados de empresas que estão disponíveis arquivos no formato csv.
+Aplicação que analisa dados de empresas que estão disponíveis em uma base de dados csv.
 
 ## Pré-requesitos
 
@@ -43,7 +43,7 @@ Conceda privilégios para esse usuário (pode conceder menos privilégios se qui
 
 
 ```shell
-mysql> GRANT ALL PRIVILEGES ON *.* TO '<username>'@'localhost' WITH GRANT OPTION;
+mysql> GRANT CREATE, ALTER, DROP, INSERT, UPDATE, INDEX, DELETE, SELECT, REFERENCES, RELOAD, CREATE VIEW on *.* TO '<username>'@'localhost' WITH GRANT OPTION;
 ```
 
 Saia do usuário root, logue com o usuário que acabou de criar, e crie um banco de dados com o script disponivel no arquivo [democsv.sql](https://github.com/NilloGabriel/demo-csv/blob/main/database/democsv.sql):
@@ -53,6 +53,17 @@ mysql> quit
 $ mysql -u <username> -p
 Enter password: ***
 mysql> CREATE DATABASE democsv...
+```
+
+## Credenciais 
+
+Crie um arquivo .env na raíz do projeto e informe as credenciais utilizando o padrão:
+
+```
+DATABASE_HOST=""
+DATABASE_USERNAME=""
+DATABASE_PASSWORD=""
+DATABASE_NAME=""
 ```
 
 ## Instalando dependências do projeto
