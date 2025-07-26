@@ -19,6 +19,24 @@ const cityPop = []
 const citySiafi = []
 const company = []
 
+const readCsvFile = (path, start, destArray, mapping) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const stream = createReadStream(path, { start })
+      const fileLines = createInterface({ input: stream })
+
+      for await (let line of fileLines) {
+        const lineSplit = line.split(',')
+        destArray.push(mapping(lineSplit))
+      }
+
+      resolve()
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
 const readUf = new Promise(async (resolve, reject) => {
   try {
     const streamUf = createReadStream(paths[0], {
