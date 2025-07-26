@@ -75,7 +75,7 @@ $ npm i
 ## Rodando o projeto
 
 ```shell
-$ node app.js
+$ npm start
 ```
 
 
