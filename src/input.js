@@ -76,32 +76,14 @@ const readCitySiafi = readCsvFile(paths[2], 55, citySiafi, lineSplit => ({
   siafi_id: lineSplit[5]
 }))
 
-const readCompany = new Promise(async (resolve, reject) => {
-  try {
-    const streamCompany = createReadStream(paths[3], {
-      start: 71
-    })
-
-    const fileCompanyLines = createInterface({
-      input: streamCompany
-    })
-
-    for await (let line of fileCompanyLines) {
-      const companyLineSplit = line.split(',')
-      company.push({
-        nome_fantasia: companyLineSplit[0],
-        dt_inicio_atividades: companyLineSplit[1],
-        cnae_fiscal: companyLineSplit[2],
-        cep: companyLineSplit[3],
-        municipio: companyLineSplit[4],
-        porte: companyLineSplit[5]
-      })
-    }
-    resolve()
-  } catch (err) {
-    reject(err)
-  }
-})
+const readCompany = readCsvFile(paths[3], 71, company, lineSplit => ({
+  nome_fantasia: lineSplit[0],
+  dt_inicio_atividades: lineSplit[1],
+  cnae_fiscal: lineSplit[2],
+  cep: lineSplit[3],
+  municipio: lineSplit[4],
+  porte: lineSplit[5]
+}))
 
 export const allPromises = Promise.all([
   readUf,
