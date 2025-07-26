@@ -4,6 +4,7 @@ import slug from 'slug'
 
 import { getNomeUf } from './util/uf.js'
 import { formatDate } from './util/date.js'
+import { haversineDistance } from './util/calculateDistance.js'
 import { connection } from '../database/database.js'
 import { outputData } from './output.js'
 
@@ -135,8 +136,25 @@ const processCityData = async () => {
 }
 
 const processCompanyData = async () => {
+  const largestCities = arrayCity.sort((city1, city2) => city2.populacao - city1.populacao).slice(0, 4)
+  
   company.forEach(line => {
     const auxIdCity = arrayCity.find(city => city.siafi_id === line.municipio).id_city
+    const cityCompany = arrayCity.find(city => city.id_city === auxIdCity)
+
+    const companyLatLng = {
+      lat: cityCompany.latitude,
+      lng: cityCompany.longitude
+    }
+
+    const distances = largestCities.map(city => {
+      const cityLatLng = {
+        lat: city.latitude,
+        lng: city.longitude
+      }
+      
+      return haversineDistance(companyLatLng, cityLatLng);
+    });
 
     arrayCompany.push({
       slug: slug(line.nome_fantasia),
@@ -145,13 +163,16 @@ const processCompanyData = async () => {
       cnae_fiscal: line.cnae_fiscal,
       cep: line.cep,
       porte: line.porte,
-      cidade_id: auxIdCity
+      cidade_id: auxIdCity,
+      dist_1: distances[0],
+      dist_2: distances[1],
+      dist_3: distances[2],
+      dist_4: distances[3]
     })
   })
 
   await connection.query(
-    `INSERT INTO empresa (slug, nome_fantasia, dt_inicio_atividade, cnae_fiscal, cep, porte, cidade_id) 
-          VALUES ?`,
+    `INSERT INTO empresa (slug, nome_fantasia, dt_inicio_atividade, cnae_fiscal, cep, porte, cidade_id, dist_1, dist_2, dist_3, dist_4) VALUES ?`,
     [
       arrayCompany.map(data => [
         data.slug,
@@ -160,7 +181,11 @@ const processCompanyData = async () => {
         data.cnae_fiscal,
         data.cep,
         data.porte,
-        data.cidade_id
+        data.cidade_id,
+        data.dist_1,
+        data.dist_2,
+        data.dist_3,
+        data.dist_4
       ])
     ]
   ).catch(err => {
