@@ -5,7 +5,7 @@ import slug from 'slug'
 import { getNomeUf } from './util/uf.js'
 import { formatDate } from './util/date.js'
 import { connection } from '../database/database.js'
-import { output } from './output.js'
+import { outputData } from './output.js'
 
 const paths = [
   'database/csv/input/uf.csv',
@@ -197,7 +197,7 @@ export const allPromises = Promise.all([
         throw err
       })
 
-    output()
+    outputData()
     await connection.end()
   })
   .catch(err => {
